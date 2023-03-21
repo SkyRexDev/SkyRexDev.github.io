@@ -1,5 +1,11 @@
+import * as THREE from "three"
+import {OrbitControls} from "OrbitControls"
+import {DragControls} from "DragControls"
+import {GLTFLoader} from "GLTFLoader"
+
+
 let renderer, scene, camera;
-let cameraControls;
+let cameraControls, dragControls;
 let whiteRook;
 
 init();
@@ -18,13 +24,28 @@ function init() {
   camera.position.set(1, 1.5, 2);
   camera.lookAt(0, 0, 0);
 
-  cameraControls = new THREE.OrbitControls(camera, renderer.domElement);
+  cameraControls = new OrbitControls(camera, renderer.domElement);
+  
 
   window.addEventListener("resize", updateAspectRatio);
   loadScene();
   generateBoard();
   light();
+  drag();
   render();
+}
+
+function drag() {
+  dragControls = new DragControls([whiteRook], camera, renderer.domElement);
+
+  dragControls.addEventListener('dragstart', function (event) {
+    orbitControls.enabled = false
+    event.object.material.opacity = 0.33
+  });
+  dragControls.addEventListener('dragend', function (event) {
+    orbitControls.enabled = true
+    event.object.material.opacity = 1
+  });
 }
 
 function loadScene() {
@@ -44,7 +65,7 @@ function loadScene() {
   const box = new THREE.Mesh(boxGeometry, material);
   box.position.x = 0;
 
-  const glloader = new THREE.GLTFLoader();
+  const glloader = new GLTFLoader();
 
   glloader.load(
     "models/rook/scene.gltf",
