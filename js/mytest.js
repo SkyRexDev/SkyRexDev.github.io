@@ -55,12 +55,12 @@ for (let x = 0; x < 8; x++) {
 }
 
 loadModel("models/rook/scene.gltf", new THREE.Vector3(0, 0, 7), new THREE.Euler(0, 0, 0), false);
-loadModel("models/knight/scene.gltf", new THREE.Vector3(1, 0, 7), new THREE.Euler(0, 0, 0), false);
+loadModel("models/knight/scene.gltf", new THREE.Vector3(1, 0, 7), new THREE.Euler(0, 3, 0), false);
 loadModel("models/bishop/scene.gltf", new THREE.Vector3(2, 0, 7), new THREE.Euler(0, 0, 0), false);
 loadModel("models/queen/scene.gltf", new THREE.Vector3(3, 0, 7), new THREE.Euler(0, 0, 0), false);
 loadModel("models/king/scene.gltf", new THREE.Vector3(4, 0, 7), new THREE.Euler(0, 0, 0), false);
 loadModel("models/bishop/scene.gltf", new THREE.Vector3(5, 0, 7), new THREE.Euler(0, 0, 0), false);
-loadModel("models/knight/scene.gltf", new THREE.Vector3(6, 0, 7), new THREE.Euler(0, 0, 0), false);
+loadModel("models/knight/scene.gltf", new THREE.Vector3(6, 0, 7), new THREE.Euler(0, 3, 0), false);
 loadModel("models/rook/scene.gltf", new THREE.Vector3(7, 0, 7), new THREE.Euler(0, 0, 0), false);
 
 for (let x = 0; x < 8; x++) {
