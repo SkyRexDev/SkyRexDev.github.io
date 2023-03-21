@@ -1,111 +1,150 @@
-import * as THREE from "three"
-import {OrbitControls} from "OrbitControls"
-import {DragControls} from "DragControls"
-import {GLTFLoader} from "GLTFLoader"
+// Import necessary modules
+import * as THREE from 'three';
+import { GLTFLoader } from "GLTFLoader"
+import { OrbitControls } from "OrbitControls"
 
+const blackMaterial = new THREE.MeshPhongMaterial({
+  color: 0x1f1e1e,
+  shininess: 100, // high shininess
+  specular: 0x111111, // dark specular color
+});
+const whiteMaterial = new THREE.MeshPhongMaterial({
+  color: "white",
+  shininess: 100, // high shininess
+  specular: 0x111111, // dark specular color
+});
 
-let renderer, scene, camera;
-let cameraControls, dragControls;
-let whiteRook;
+const tiles = [];
+const scene = new THREE.Scene();
+let camera = new THREE.PerspectiveCamera(20, window.innerWidth / window.innerHeight, 0.1, 1000);
+const renderer = new THREE.WebGLRenderer();
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+renderer.setClearColor(new THREE.Color(0x727e8a));
+scene.add(ambientLight);
 
-init();
+const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+directionalLight.position.set(1, 1, 1);
+scene.add(directionalLight);
 
-function init() {
-  renderer = new THREE.WebGLRenderer();
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setClearColor(new THREE.Color(0x727e8a));
-  renderer.outputEncoding = THREE.sRGBEncoding;
-  document.getElementById("container").appendChild(renderer.domElement);
+const controls = new OrbitControls(camera, renderer.domElement);
+camera.position.z = 25;
+camera.position.y = 10;
+camera.position.x = -10;
+controls.update();
 
-  scene = new THREE.Scene();
+const chessboard = generateBoard();
+scene.add(chessboard);
 
-  var aspectRatio = window.innerWidth / window.innerHeight;
-  camera = new THREE.PerspectiveCamera(50, aspectRatio, 0.1, 100);
-  camera.position.set(1, 1.5, 2);
-  camera.lookAt(0, 0, 0);
+const loader = new GLTFLoader();
+const chessPiecesGroup = new THREE.Group();
+scene.add(chessPiecesGroup);
 
-  cameraControls = new OrbitControls(camera, renderer.domElement);
-  
+loadModel("models/rook/scene.gltf", new THREE.Vector3(0, 0, 0), new THREE.Euler(0, 0, 0), true);
+loadModel("models/knight/scene.gltf", new THREE.Vector3(1, 0, 0), new THREE.Euler(0, 0, 0), true);
+loadModel("models/bishop/scene.gltf", new THREE.Vector3(2, 0, 0), new THREE.Euler(0, 0, 0), true);
+loadModel("models/queen/scene.gltf", new THREE.Vector3(3, 0, 0), new THREE.Euler(0, 0, 0), true);
+loadModel("models/king/scene.gltf", new THREE.Vector3(4, 0, 0), new THREE.Euler(0, 0, 0), true);
+loadModel("models/bishop/scene.gltf", new THREE.Vector3(5, 0, 0), new THREE.Euler(0, 0, 0), true);
+loadModel("models/knight/scene.gltf", new THREE.Vector3(6, 0, 0), new THREE.Euler(0, 0, 0), true);
+loadModel("models/rook/scene.gltf", new THREE.Vector3(7, 0, 0), new THREE.Euler(0, 0, 0), true);
 
-  window.addEventListener("resize", updateAspectRatio);
-  loadScene();
-  generateBoard();
-  light();
-  drag();
-  render();
+for (let x = 0; x < 8; x++) {
+  loadModel("models/pawn/scene.gltf", new THREE.Vector3(x, 0, 1), new THREE.Euler(0, 0, 0), true);
 }
 
-function drag() {
-  dragControls = new DragControls([whiteRook], camera, renderer.domElement);
+loadModel("models/rook/scene.gltf", new THREE.Vector3(0, 0, 7), new THREE.Euler(0, 0, 0), false);
+loadModel("models/knight/scene.gltf", new THREE.Vector3(1, 0, 7), new THREE.Euler(0, 0, 0), false);
+loadModel("models/bishop/scene.gltf", new THREE.Vector3(2, 0, 7), new THREE.Euler(0, 0, 0), false);
+loadModel("models/queen/scene.gltf", new THREE.Vector3(3, 0, 7), new THREE.Euler(0, 0, 0), false);
+loadModel("models/king/scene.gltf", new THREE.Vector3(4, 0, 7), new THREE.Euler(0, 0, 0), false);
+loadModel("models/bishop/scene.gltf", new THREE.Vector3(5, 0, 7), new THREE.Euler(0, 0, 0), false);
+loadModel("models/knight/scene.gltf", new THREE.Vector3(6, 0, 7), new THREE.Euler(0, 0, 0), false);
+loadModel("models/rook/scene.gltf", new THREE.Vector3(7, 0, 7), new THREE.Euler(0, 0, 0), false);
 
-  dragControls.addEventListener('dragstart', function (event) {
-    orbitControls.enabled = false
-    event.object.material.opacity = 0.33
-  });
-  dragControls.addEventListener('dragend', function (event) {
-    orbitControls.enabled = true
-    event.object.material.opacity = 1
-  });
+for (let x = 0; x < 8; x++) {
+  loadModel("models/pawn/scene.gltf", new THREE.Vector3(x, 0, 6), new THREE.Euler(0, 0, 0), false);
 }
 
-function loadScene() {
-  const material = new THREE.MeshBasicMaterial({
-    color: "yellow",
-    wireframe: true,
-  });
-  const blackMaterial = new THREE.MeshPhongMaterial({
-    color: "black",
-  });
-  const whiteMaterial = new THREE.MeshPhongMaterial({
-    color: "white",
-    shininess: 100, // high shininess
-    specular: 0x111111, // dark specular color
-  });
-  const boxGeometry = new THREE.BoxGeometry(1, 1, 1);
-  const box = new THREE.Mesh(boxGeometry, material);
-  box.position.x = 0;
-
-  const glloader = new GLTFLoader();
-
-  glloader.load(
-    "models/rook/scene.gltf",
-    function (gltf) {
-      gltf.scene.position.y = -0.5;
-      gltf.scene.rotation.y = Math.PI / 2;
-      gltf.scene.scale.set(1, 1, 1);
-      gltf.scene.traverse(function (child) {
+function loadModel(modelPath, position, rotation, isWhite) {
+  return new Promise((resolve) => {
+    loader.load(modelPath, (gltf) => {
+      const model = gltf.scene;
+      model.position.copy(position);
+      model.rotation.copy(rotation);
+      model.scale.set(1, 1, 1);
+      model.isChessPiece = true;
+      model.traverse(function (child) {
         if (child.isMesh) {
-          if (child.material.map) {
-            child.material.map = blackMaterial;
-            child.material.map.needsUpdate = true;
-          }
+          child.material = isWhite ? whiteMaterial : blackMaterial;
         }
       });
-      box.add(gltf.scene);
-    },
-    undefined,
-    function (error) {
-      console.error(error);
+      chessPiecesGroup.add(model);
+      resolve(model);
+    });
+  });
+}
+
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+let selectedPiece = null;
+
+function onMouseDown(event) {
+  event.preventDefault();
+
+  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+  raycaster.setFromCamera(mouse, camera);
+
+  const intersects = raycaster.intersectObjects(chessPiecesGroup.children, true);
+
+  if (intersects.length > 0) {
+    let rootObject = intersects[0].object;
+    while (rootObject.parent !== chessPiecesGroup && rootObject.parent !== null) {
+      rootObject = rootObject.parent;
     }
-  );
-
-  whiteRook = new THREE.Object3D();
-  whiteRook.position.y = 0.65;
-  scene.add(whiteRook);
-  whiteRook.add(box);
+    if (rootObject.isChessPiece) { // Add this condition
+      selectedPiece = rootObject;
+      controls.enabled = false;
+    }
+  }
 }
 
-function updateAspectRatio() {
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
+function onMouseMove(event) {
+  console.log("Mouse moved");
+  console.log("Tiles:", tiles);
+  if (selectedPiece) {
+    console.log(selectedPiece.position);
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+    raycaster.setFromCamera(mouse, camera);
+
+    const intersects = raycaster.intersectObjects(tiles);
+
+    if (intersects.length > 0) {
+      const { x, y, z } = intersects[0].point;
+      console.log("Intersected tile:", x, y, z);
+      const newX = Math.round(x);
+      const newY = selectedPiece.position.y;
+      const newZ = Math.round(z);
+
+      selectedPiece.position.set(newX, newY, newZ);
+    }
+  }
 }
 
-function light() {
-  var light;
-  light = new THREE.AmbientLight(0xfffffff, 1);
-  scene.add(light);
+function onMouseUp(event) {
+  event.preventDefault();
+
+  if (selectedPiece) {
+    selectedPiece = null;
+    controls.enabled = true;
+  }
 }
+
 
 function generateBoard() {
   var board, cubeGeo, lightMaterial, blackMaterial;
@@ -138,19 +177,29 @@ function generateBoard() {
         );
       }
       cube.position.set(x, 0, z);
-      cameraControls.target.set(x / 2, 0, z / 2);
+      controls.target.set(x / 2, 0, z / 2);
       board.add(cube);
+      tiles.push(cube);
     }
   }
-  scene.add(board);
+  return board;
 }
 
-function update() {
-  // whiteRook.rotation.y += 0;
+document.addEventListener('mousedown', onMouseDown, false);
+document.addEventListener('mouseup', onMouseUp, false);
+document.addEventListener('mousemove', onMouseMove, false);
+window.addEventListener("resize", updateAspectRatio);
+
+function updateAspectRatio() {
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
 }
 
-function render() {
-  requestAnimationFrame(render);
-  update();
+function animate() {
+  requestAnimationFrame(animate);
+  controls.update();
   renderer.render(scene, camera);
 }
+
+animate();
