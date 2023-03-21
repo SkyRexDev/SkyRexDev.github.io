@@ -5,18 +5,11 @@
     <title>Chess</title>
     <style>
       body {
-        background-color: #000;
+        background-color: #727e8a;
         margin: 0px;
         overflow: hidden;
       }
     </style>
-  </head>
-
-  <body>
-    <!-- Contenedor del app -->
-    <div id="container"></div>
-
-    <!-- Scripts de biblioteca -->
     <script type="importmap">
       {
           "imports": {
@@ -26,7 +19,13 @@
               "DragControls": "./lib/examples/jsm/controls/DragControls.js"
           }
       }
-  </script>
-    <script type="module" src="./js/mytest.js"></script>
+    </script>
+  </head>
+  <body>
+    <div id="container">
+      <script type="module" src="./js/mytest.js"></script>
+      <button id="resetButton">Reset Board</button>
+    </div>
+    
   </body>
 </html>

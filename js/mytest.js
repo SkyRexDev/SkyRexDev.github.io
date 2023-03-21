@@ -14,6 +14,7 @@ const whiteMaterial = new THREE.MeshPhongMaterial({
   specular: 0x111111, // dark specular color
 });
 
+let capturedPieces = [];
 const tiles = [];
 const scene = new THREE.Scene();
 let camera = new THREE.PerspectiveCamera(20, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -41,30 +42,34 @@ const loader = new GLTFLoader();
 const chessPiecesGroup = new THREE.Group();
 scene.add(chessPiecesGroup);
 
-loadModel("models/rook/scene.gltf", new THREE.Vector3(0, 0, 0), new THREE.Euler(0, 0, 0), true);
-loadModel("models/knight/scene.gltf", new THREE.Vector3(1, 0, 0), new THREE.Euler(0, 0, 0), true);
-loadModel("models/bishop/scene.gltf", new THREE.Vector3(2, 0, 0), new THREE.Euler(0, 0, 0), true);
-loadModel("models/queen/scene.gltf", new THREE.Vector3(3, 0, 0), new THREE.Euler(0, 0, 0), true);
-loadModel("models/king/scene.gltf", new THREE.Vector3(4, 0, 0), new THREE.Euler(0, 0, 0), true);
-loadModel("models/bishop/scene.gltf", new THREE.Vector3(5, 0, 0), new THREE.Euler(0, 0, 0), true);
-loadModel("models/knight/scene.gltf", new THREE.Vector3(6, 0, 0), new THREE.Euler(0, 0, 0), true);
-loadModel("models/rook/scene.gltf", new THREE.Vector3(7, 0, 0), new THREE.Euler(0, 0, 0), true);
+loadModels();
 
-for (let x = 0; x < 8; x++) {
-  loadModel("models/pawn/scene.gltf", new THREE.Vector3(x, 0, 1), new THREE.Euler(0, 0, 0), true);
-}
+function loadModels() {
+  loadModel("models/rook/scene.gltf", new THREE.Vector3(0, 0, 0), new THREE.Euler(0, 0, 0), true);
+  loadModel("models/knight/scene.gltf", new THREE.Vector3(1, 0, 0), new THREE.Euler(0, 0, 0), true);
+  loadModel("models/bishop/scene.gltf", new THREE.Vector3(2, 0, 0), new THREE.Euler(0, 0, 0), true);
+  loadModel("models/queen/scene.gltf", new THREE.Vector3(3, 0, 0), new THREE.Euler(0, 0, 0), true);
+  loadModel("models/king/scene.gltf", new THREE.Vector3(4, 0, 0), new THREE.Euler(0, 0, 0), true);
+  loadModel("models/bishop/scene.gltf", new THREE.Vector3(5, 0, 0), new THREE.Euler(0, 0, 0), true);
+  loadModel("models/knight/scene.gltf", new THREE.Vector3(6, 0, 0), new THREE.Euler(0, 0, 0), true);
+  loadModel("models/rook/scene.gltf", new THREE.Vector3(7, 0, 0), new THREE.Euler(0, 0, 0), true);
 
-loadModel("models/rook/scene.gltf", new THREE.Vector3(0, 0, 7), new THREE.Euler(0, 0, 0), false);
-loadModel("models/knight/scene.gltf", new THREE.Vector3(1, 0, 7), new THREE.Euler(0, 3, 0), false);
-loadModel("models/bishop/scene.gltf", new THREE.Vector3(2, 0, 7), new THREE.Euler(0, 0, 0), false);
-loadModel("models/queen/scene.gltf", new THREE.Vector3(3, 0, 7), new THREE.Euler(0, 0, 0), false);
-loadModel("models/king/scene.gltf", new THREE.Vector3(4, 0, 7), new THREE.Euler(0, 0, 0), false);
-loadModel("models/bishop/scene.gltf", new THREE.Vector3(5, 0, 7), new THREE.Euler(0, 0, 0), false);
-loadModel("models/knight/scene.gltf", new THREE.Vector3(6, 0, 7), new THREE.Euler(0, 3, 0), false);
-loadModel("models/rook/scene.gltf", new THREE.Vector3(7, 0, 7), new THREE.Euler(0, 0, 0), false);
+  for (let x = 0; x < 8; x++) {
+    loadModel("models/pawn/scene.gltf", new THREE.Vector3(x, 0, 1), new THREE.Euler(0, 0, 0), true);
+  }
 
-for (let x = 0; x < 8; x++) {
-  loadModel("models/pawn/scene.gltf", new THREE.Vector3(x, 0, 6), new THREE.Euler(0, 0, 0), false);
+  loadModel("models/rook/scene.gltf", new THREE.Vector3(0, 0, 7), new THREE.Euler(0, 0, 0), false);
+  loadModel("models/knight/scene.gltf", new THREE.Vector3(1, 0, 7), new THREE.Euler(0, 3, 0), false);
+  loadModel("models/bishop/scene.gltf", new THREE.Vector3(2, 0, 7), new THREE.Euler(0, 0, 0), false);
+  loadModel("models/queen/scene.gltf", new THREE.Vector3(3, 0, 7), new THREE.Euler(0, 0, 0), false);
+  loadModel("models/king/scene.gltf", new THREE.Vector3(4, 0, 7), new THREE.Euler(0, 0, 0), false);
+  loadModel("models/bishop/scene.gltf", new THREE.Vector3(5, 0, 7), new THREE.Euler(0, 0, 0), false);
+  loadModel("models/knight/scene.gltf", new THREE.Vector3(6, 0, 7), new THREE.Euler(0, 3, 0), false);
+  loadModel("models/rook/scene.gltf", new THREE.Vector3(7, 0, 7), new THREE.Euler(0, 0, 0), false);
+
+  for (let x = 0; x < 8; x++) {
+    loadModel("models/pawn/scene.gltf", new THREE.Vector3(x, 0, 6), new THREE.Euler(0, 0, 0), false);
+  }
 }
 
 function loadModel(modelPath, position, rotation, isWhite) {
@@ -136,14 +141,55 @@ function onMouseMove(event) {
   }
 }
 
-function onMouseUp(event) {
-  event.preventDefault();
+function getMouseIntersectionPosition(event) {
+  const mouse = new THREE.Vector2();
+  const raycaster = new THREE.Raycaster();
 
-  if (selectedPiece) {
-    selectedPiece = null;
-    controls.enabled = true;
+  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+  raycaster.setFromCamera(mouse, camera);
+
+  const intersects = raycaster.intersectObjects(tiles);
+
+  if (intersects.length > 0) {
+    const intersect = intersects[0];
+    const x = Math.floor(intersect.point.x + 0.5);
+    const z = Math.floor(intersect.point.z + 0.5);
+    return new THREE.Vector3(x, 0, z);
   }
+
+  return null;
 }
+
+function onMouseUp(event) {
+  if (selectedPiece) {
+    const newPosition = getMouseIntersectionPosition(event);
+
+    if (newPosition) {
+      // Move any existing piece at the newPosition to the captured area
+      chessPiecesGroup.children.forEach((piece, index) => {
+        if (piece.position.x === newPosition.x && piece.position.z === newPosition.z) {
+          // Move the piece to the captured area outside the chessboard
+          const capturedRow = Math.floor(capturedPieces.length / 8);
+          const capturedCol = capturedPieces.length % 8;
+          const capturedX = 9 + capturedCol;
+          const capturedZ = capturedRow;
+          piece.position.set(capturedX, 0, capturedZ);
+          capturedPieces.push(piece);
+        }
+      });
+
+      selectedPiece.position.set(newPosition.x, 0, newPosition.z);
+    }
+
+    selectedPiece = null;
+  }
+
+  document.addEventListener("mousemove", onMouseMove, false);
+  controls.enabled = true;
+}
+
 
 
 function generateBoard() {
@@ -190,6 +236,9 @@ document.addEventListener('mouseup', onMouseUp, false);
 document.addEventListener('mousemove', onMouseMove, false);
 window.addEventListener("resize", updateAspectRatio);
 
+const resetButton = document.getElementById("resetButton");
+resetButton.addEventListener("click", resetBoard);
+
 function updateAspectRatio() {
   renderer.setSize(window.innerWidth, window.innerHeight);
   camera.aspect = window.innerWidth / window.innerHeight;
@@ -200,6 +249,11 @@ function animate() {
   requestAnimationFrame(animate);
   controls.update();
   renderer.render(scene, camera);
+}
+
+function resetBoard() {
+  chessPiecesGroup.children = [];
+  loadModels();
 }
 
 animate();
